@@ -1,0 +1,36 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - echo "Login in to Amazon ECR..."
+      - aws --version
+      - echo "Login in to Amazon ECR..."
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 495386272521.dkr.ecr.us-east-1.amazonaws.com
+      - echo setting repository URI.........
+      - REPOSITORY_URI=495386272521.dkr.ecr.us-east-1.amazonaws.com/codepipeline
+      - echo setting image tag.........
+      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
+  build:
+    commands:
+      - echo building and tagging  started image on `date`
+      - echo running maven clean install......
+      - mvn clean install
+      - echo building the Docker image...
+      - docker build -t $REPOSITORY_URI:latest .
+      - echo tagging the Docker image...
+      - docker tag $REPOSITORY_URI:latest $$REPOSITORY_URI:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo "Pushing the Docker image to ECR Repository"
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo "Setting container name"
+      - DOCKER_CONTAINER_NAME=codepipelinecontainer
+      - echo waiting image definitions file....
+      - printf '[{"name":"%s","imageUri":"%s"}]' $DOCKER_CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > build.json
+      - echo $DOCKER_CONTAINER_NAME
+      - echo printing build.json
+      - cat build.json
+artifacts:
+  files:
+    - build.json

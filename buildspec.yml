@@ -27,10 +27,10 @@ phases:
       - echo "Setting container name"
       - DOCKER_CONTAINER_NAME=codepipelinecontainer
       - echo waiting image definitions file....
-      - printf '[{"name":"%s","imageUri":"%s"}]' $DOCKER_CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - printf '[{"name":"%s","imageUri":"%s"}]' $DOCKER_CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > build.json
       - echo $DOCKER_CONTAINER_NAME
-      - echo printing imagedefinitions.json
-      - cat imagedefinitions.json
+      - echo printing build.json
+      - cat build.json
 artifacts:
   files:
-    - imagedefinitions.json
+    - build.json
